@@ -1,9 +1,11 @@
-from django.http import HttpResponse
 import json
 import os
 import tempfile
 from statistics import mean
 
+from django.http import HttpResponse
+
+# test_data for requests
 
 requests = [
     (200, 5.0),
@@ -27,7 +29,7 @@ class Algorithm:
         self.algorithm = algo
 
     def show_error_msg(self, error_type):
-        print ("Can't compute the result for {} because of {}".format(self.algorithm.__name__, error_type))
+        print("Can't compute the result for {} because of {}".format(self.algorithm.__name__, error_type))
 
     def apply(self, *args, **kwargs):
         try:
@@ -42,23 +44,26 @@ def compute_average_response_time(requests):
     logs = list()
 
     def check_input_params(requests):
+        print("type", type(requests))
+        if not isinstance(requests, list):
+            raise TypeError("Input data must be a list")
+
         for item in requests:
             if len(item) != 2:
-                raise TypeError("Invalid parameters")
+                raise TypeError("Input data must be list of tuples with length 2")
             if not isinstance(item[0], int) or not isinstance(item[1], float):
-                raise TypeError("not int")
+                raise TypeError("The first argument must have type 'int', the second - type 'float' ")
             if not 100 <= item[0] <= 600:
-                raise ValueError
+                raise ValueError("The first argument must be an integer between 100 fnd 600")
             if not 0.0 <= item[1] <= 100.0:
-                raise ValueError
+                raise ValueError("The second argument must be a float between 0.0 and 100.0")
 
     def check_length(key, code, item, needed_num):
         if len(item) < needed_num:
             logs.append("{} for code {} was computed with {} values".format(code, key, len(item)))
-            print("{} for code {} was computed with {} values".format(code, key, len(item)))
 
     check_input_params(requests)
-    storage_path = os.path.join(tempfile.gettempdir(), 'requests.data')
+    storage_path = os.path.join(tempfile.gettempdir(), 'requests11.data')
 
     def get_data():
         if not os.path.exists(storage_path):
@@ -90,6 +95,7 @@ def compute_average_response_time(requests):
                 old_data[key].extend(value)
             except KeyError:
                 old_data[key] = value
+
         put_data(old_data)
 
     def compute_average_for_request(txt, container, number_of_requests, key, value):
@@ -99,18 +105,20 @@ def compute_average_response_time(requests):
     def compute_result():
         build_request_dict()
         extend_statistics()
+
         for key, value in old_data.items():
             tmp = dict()
             compute_average_for_request('average for 5', tmp, 5, key, value)
             compute_average_for_request('average for 10', tmp, 10, key, value)
             compute_average_for_request('average for 20', tmp, 20, key, value)
             average_response_time_stat['status_code: {}'.format(key)] = tmp
+
         return average_response_time_stat, logs
 
     return compute_result()
 
 
-def result(request):
+def show_result(requests):
     alg = Algorithm(compute_average_response_time)
     res = alg.apply(requests)
     return HttpResponse(json.dumps(res), content_type='application/json')

@@ -44,7 +44,6 @@ def compute_average_response_time(requests):
     logs = list()
 
     def check_input_params(requests):
-        print("type", type(requests))
         if not isinstance(requests, list):
             raise TypeError("Input data must be a list")
 

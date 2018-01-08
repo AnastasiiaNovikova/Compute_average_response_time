@@ -118,7 +118,7 @@ def compute_average_response_time(requests):
     return compute_result()
 
 
-def show_result(requests):
+def show_response(requests):
     alg = Algorithm(compute_average_response_time)
-    res = alg.apply(requests)
-    return HttpResponse(json.dumps(res), content_type='application/json')
+    response = alg.apply(requests)
+    return HttpResponse(json.dumps(response), content_type='application/json')
